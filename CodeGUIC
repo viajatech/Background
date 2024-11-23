@@ -2,7 +2,7 @@
 #pip install rembg
 #pip install --upgrade rembg onnxruntime numpy Pillow
 
-#import tkinter as tk
+import tkinter as tk
 from tkinter import filedialog, messagebox
 from rembg import remove, new_session
 import os

@@ -1,0 +1,68 @@
+#pip install onnxruntime
+#pip install rembg
+#pip install --upgrade rembg onnxruntime numpy Pillow
+
+#import tkinter as tk
+from tkinter import filedialog, messagebox
+from rembg import remove, new_session
+import os
+
+# Crear una sesión con el modelo "u2net_human_seg"
+session = new_session('u2net_human_seg')
+
+def select_images():
+    file_paths = filedialog.askopenfilenames(
+        title="Select Images",
+        filetypes=[("Image Files", "*.png;*.jpg;*.jpeg;*.bmp")]
+    )
+    if file_paths:
+        for file_path in file_paths:
+            listbox.insert(tk.END, file_path)
+
+def clear_list():
+    listbox.delete(0, tk.END)
+
+def remove_background():
+    output_dir = filedialog.askdirectory(title="Select Output Folder")
+    if not output_dir:
+        return
+
+    for idx in range(listbox.size()):
+        input_path = listbox.get(idx)
+        output_path = os.path.join(output_dir, f"bg_removed_{os.path.basename(input_path)}")
+        try:
+            with open(input_path, "rb") as inp_file:
+                input_data = inp_file.read()
+                # Usar la sesión creada con el modelo deseado
+                output_data = remove(input_data, session=session)
+                with open(output_path, "wb") as out_file:
+                    out_file.write(output_data)
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo procesar {input_path}: {e}")
+    messagebox.showinfo("Éxito", "¡Fondos eliminados exitosamente!")
+
+# Crear la ventana principal de la GUI
+root = tk.Tk()
+root.title("Background by ViajaTech")
+root.geometry("600x400")
+
+# Frame para los botones
+frame = tk.Frame(root)
+frame.pack(pady=10)
+
+# Botones
+select_button = tk.Button(frame, text="Select Images", command=select_images, width=20)
+select_button.grid(row=0, column=0, padx=5, pady=5)
+
+clear_button = tk.Button(frame, text="Clear List", command=clear_list, width=20)
+clear_button.grid(row=0, column=1, padx=5, pady=5)
+
+process_button = tk.Button(frame, text="Remove Backgrounds", command=remove_background, width=20)
+process_button.grid(row=0, column=2, padx=5, pady=5)
+
+# Listbox para mostrar los archivos seleccionados
+listbox = tk.Listbox(root, selectmode=tk.MULTIPLE, width=80, height=15)
+listbox.pack(pady=10)
+
+# Ejecutar el bucle principal de Tkinter
+root.mainloop()
